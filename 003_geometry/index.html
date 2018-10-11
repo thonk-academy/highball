@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html>
+    <head>
+      <style>
+			html, body {
+                width:100%;
+                margin: 0;
+            }
+			canvas {
+                display: block;
+                margin: 10% auto;
+            }
+		</style>
+    </head>
+    <body>
+        <script src="../js/three.js"></script>
+        <script src="../js/OrbitControls.js"></script>
+        <script src="../js/ParametricGeometries.js"></script>
+        <script>
+
+        var loader = new THREE.FontLoader();
+
+        loader.load( '../fonts/helvetiker_regular.typeface.json', function ( font ) {
+            var width = 700;
+            var height = 500;
+
+        	var scene = new THREE.Scene();
+        	var camera = new THREE.PerspectiveCamera( 75, width/height, 0.1, 1000 );
+
+        	var renderer = new THREE.WebGLRenderer();
+        	renderer.setSize( width, height );
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap; // default THREE.PCFShadowMap
+        	document.body.appendChild( renderer.domElement );
+
+            const planeGeometry = new THREE.PlaneGeometry( 10000, 10000, 10000 );
+            var planeMaterial = new THREE.MeshPhongMaterial({ color: 0x555555 });
+            var plane = new THREE.Mesh( planeGeometry, planeMaterial );
+            plane.position.y = -1.5;
+            plane.rotation.x = -3.14/2;
+            plane.castShadow = true; //default is false
+            plane.receiveShadow = true; //default
+            scene.add( plane );
+
+
+            var verticesOfCube = [
+                -1,-1,-1,    1,-1,-1,    1, 1,-1,    -1, 1,-1,
+                -1,-1, 1,    1,-1, 1,    1, 1, 1,    -1, 1, 1,
+            ];//.map(v => v * 0.1);
+
+            var indicesOfFaces = [
+                2,1,0,    0,3,2,
+                0,4,7,    7,3,0,
+                0,1,5,    5,4,0,
+                1,2,6,    6,5,1,
+                2,3,7,    7,6,2,
+                4,5,6,    6,7,4
+            ];
+
+
+            var heartShape = new THREE.Shape();
+
+            var x = -0.5, y = -0.6, s = 0.1;
+            heartShape.moveTo( x + s*5, y + s*5 );
+            heartShape.bezierCurveTo( x + s*5, y + s*5, x + s*4, y, x, y );
+            heartShape.bezierCurveTo( x - s*6, y, x - s*6, y + s*7,x - s*6, y + s*7 );
+            heartShape.bezierCurveTo( x - s*6, y + s*11, x - s*3, y + s*15.4, x + s*5, y + s*19 );
+            heartShape.bezierCurveTo( x + s*12, y + s*15.4, x + s*16, y + s*11, x + s*16, y + s*7 );
+            heartShape.bezierCurveTo( x + s*16, y + s*7, x + s*16, y, x + s*10, y );
+            heartShape.bezierCurveTo( x + s*7, y, x + s*5, y + s*5, x + s*5, y + s*5 );
+
+
+            function CustomSinCurve( scale ) {
+
+        	THREE.Curve.call( this );
+
+            	this.scale = ( scale === undefined ) ? 1 : scale;
+
+            }
+
+            CustomSinCurve.prototype = Object.create( THREE.Curve.prototype );
+            CustomSinCurve.prototype.constructor = CustomSinCurve;
+
+            CustomSinCurve.prototype.getPoint = function ( t ) {
+
+            	var tx = t * 3 - 1.5;
+            	var ty = Math.sin( 2 * Math.PI * t );
+            	var tz = 0;
+
+            	return new THREE.Vector3( tx, ty, tz ).multiplyScalar( this.scale );
+
+            };
+
+            var path = new CustomSinCurve( 0.6 );
+
+            const geometries = [
+                // new THREE.BoxBufferGeometry( 1, 1, 1 ),
+                new THREE.BoxGeometry( 1, 1, 1 ),
+                // new THREE.CircleBufferGeometry( 0.7, 32 ),
+                new THREE.CircleGeometry( 0.7, 32 ),
+                new THREE.ConeGeometry( 0.75, 1.5, 32 ),
+                // new THREE.CylinderBufferGeometry( 0.4, 0.4, 1, 32 ),
+                new THREE.CylinderGeometry( 0.4, 0.4, 1, 32 ),
+                new THREE.DodecahedronBufferGeometry( 1, 0 ),
+                new THREE.DodecahedronGeometry( 1, 0 ),
+                // new THREE.EdgesGeometry( new THREE.BoxBufferGeometry( 1, 1, 1 ) ),
+                // new THREE.ExtrudeBufferGeometry( ),
+                // new THREE.ExtrudeGeometry( ),
+                // new THREE.IcosahedronBufferGeometry( 1, 0 ),
+                new THREE.IcosahedronGeometry( 1, 0 ),
+                // new THREE.LatheBufferGeometry( lathePoints() ),
+                new THREE.LatheGeometry( lathePoints() ),
+                // new THREE.OctahedronBufferGeometry( 1, 0 ),
+                new THREE.OctahedronGeometry( 1, 0 ),
+                // new THREE.ParametricBufferGeometry( klien( 0.12 ), 25, 25 ),
+                new THREE.ParametricGeometry( klien( 0.12 ), 25, 25 ),
+                // new THREE.PlaneBufferGeometry( 1, 1, 1 ),
+                new THREE.PlaneGeometry( 1, 1, 1 ),
+                // new THREE.PolyhedronBufferGeometry( verticesOfCube, indicesOfFaces, 1, 0 ),
+                new THREE.PolyhedronGeometry( verticesOfCube, indicesOfFaces, 1, 0 ),
+                // new THREE.RingBufferGeometry( 0.5, 0.8, 32 ),
+                new THREE.RingGeometry( 0.5, 0.8, 32 ),
+                // new THREE.ShapeBufferGeometry( heartShape ),
+                new THREE.ShapeGeometry( heartShape ),
+                // new THREE.SphereBufferGeometry( 1, 32, 32 ),
+                new THREE.SphereGeometry( 1, 32, 32 ),
+                // new THREE.TetrahedronBufferGeometry( 1, 0 ),
+                new THREE.TetrahedronGeometry(  1, 1 ),
+                new THREE.TextBufferGeometry( 'A', {
+            		font: font,  // http://gero3.github.io/facetype.js/
+                    size: 1,
+            		height: 0.2,
+            		curveSegments: 12,
+            		bevelEnabled: true,
+            		bevelThickness: 0.1,
+            		bevelSize: 0.1,
+            		bevelSegments: 3
+            	} ),
+                new THREE.TextGeometry( 'B', {
+            		font: font,  // http://gero3.github.io/facetype.js/
+            		size: 1,
+            		height: 0.2,
+            		curveSegments: 12,
+            		bevelEnabled: true,
+            		bevelThickness: 0.1,
+            		bevelSize: 0.1,
+            		bevelSegments: 3
+            	} ),
+                // new THREE.TorusBufferGeometry( 0.6, 0.15, 16, 100 ),
+                new THREE.TorusGeometry( 0.6, 0.15, 16, 100 ),
+                // new THREE.TorusKnotBufferGeometry( 0.6, 0.15, 100, 16 ),
+                new THREE.TorusKnotGeometry( 0.6, 0.15, 100, 16 ),
+                // new THREE.TubeBufferGeometry( path, 20, 0.2, 8, false ),
+                new THREE.TubeGeometry( path, 20, 0.2, 8, false ),
+                // new THREE.WireframeGeometry( new THREE.TorusKnotGeometry( 0.6, 0.15, 100, 16 ) )
+            ];
+
+            var material = new THREE.MeshPhongMaterial({
+                color: 0x00ff00,
+                side: THREE.DoubleSide
+            });
+
+            const meshes = geometries.map(geometry => new THREE.Mesh( geometry, material ));
+            meshes.forEach((mesh, i) => {
+                const size = 5;
+                mesh.position.x = (size/2)*(i % size) - (size/2);
+                mesh.position.z = (size/2)*Math.floor(i / size)  - (size/2);
+                mesh.castShadow = true; //default is false
+                mesh.receiveShadow = false; //default
+
+
+                scene.add( mesh );
+
+            });
+
+            var ambientLight = new THREE.AmbientLight( 0x404040 );
+            // scene.add( ambientLight );
+
+            // var light = new THREE.DirectionalLight( 0xFFFFFF );
+            // light.position.z = 5;
+            // light.position.y = 5;
+            // light.castShadow = true;            // default false
+            // scene.add(light);
+            // var helper = new THREE.DirectionalLightHelper( light, 5 );
+            // scene.add( helper );
+            // helper.update();
+
+            var pointLight = new THREE.PointLight( 0xFFFFFF, 1, 0 );
+            pointLight.position.set( 0, 6, 0 );
+            pointLight.castShadow = true;            // default false
+            //Set up shadow properties for the light
+            pointLight.shadow.mapSize.width = 512;  // default
+            pointLight.shadow.mapSize.height = 512; // default
+            pointLight.shadow.camera.near = 0.5;       // default
+            pointLight.shadow.camera.far = 500      // default
+            scene.add( pointLight );
+
+            var pointLightHelper = new THREE.PointLightHelper( pointLight, 1 );
+            // scene.add( pointLightHelper );
+
+            var controls = new THREE.OrbitControls( camera );
+            //controls.update() must be called after any manual changes to the camera's transform
+            camera.position.set( 10, 10, 10 );
+            controls.update();
+
+            const start = Date.now();
+            var r = 0;
+
+        	var animate = function () {
+        		requestAnimationFrame( animate );
+
+                var time = Date.now() - start;
+
+                pointLight.position.x = 2 * Math.sin(0.0001*time) + 4;
+                pointLight.position.z = 2 * Math.cos(0.0001*time) + 4;
+                pointLight.position.y = 0.5 * Math.cos(0.004*time) + 4 + r;
+                r += 0.2*(Math.random()-0.5);
+                pointLightHelper.update();
+
+                meshes.forEach(mesh => {
+                    mesh.rotation.x += 0.01;
+            		mesh.rotation.y += 0.01;
+                });
+
+                // required if controls.enableDamping or controls.autoRotate are set to true
+                controls.update();
+
+
+
+        		renderer.render( scene, camera );
+        	};
+
+        	animate();
+
+            function lathePoints() {
+                return Array(20).fill().map((v, i) => new THREE.Vector2(
+                        Math.sin( i * 1.0 ) * 0.2 + 0.5,
+                        i * 0.1 - 0.8));
+            }
+
+            function klien( scale ) {
+                return ( u, v, target) => {
+                    THREE.ParametricGeometries.klein( u, v, target );
+                    target.multiplyScalar( scale );
+                };
+            }
+
+            function createBoxGeometry() {
+                var geometry = new THREE.BoxGeometry( 1, 1, 1 );
+            	var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
+            	var cube = new THREE.Mesh( geometry, material );
+                return cube;
+            }
+
+
+            function createBoxBufferGeometry() {
+                var geometry = new THREE.BoxBufferGeometry( 1, 1, 1 );
+                var material = new THREE.MeshBasicMaterial( {color: 0x00ff00} );
+                var cube = new THREE.Mesh( geometry, material );
+                return cube;
+            }
+        });
+        </script>
+    </body>
+</html>
